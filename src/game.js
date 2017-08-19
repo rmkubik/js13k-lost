@@ -14,17 +14,26 @@ var init = function() {
     canvas.width = 500;
 
     testImage = new Image();
-    testImage.src = "testasset.png";
+    testImage.src = 'testasset.png';
     testSprite = new Sprite(testImage);
+
+    document.addEventListener('keydown', function(event) {
+        testSprite.handleKeyDown(event);
+    });
+    document.addEventListener('keyup', function(event) {
+        testSprite.handleKeyUp(event);
+    });
 }
 
 var update = function(delta) {
-    console.log('update');
+    var seconds = delta / 1000;
+
+    testSprite.update(delta);
 }
 
 var render = function () {
     context.fillStyle = 'green';
-    context.fillRect(10, 10, 100, 500);
+    context.fillRect(0, 0, 500, 500);
     testSprite.render(context);
 }
 
@@ -50,8 +59,62 @@ var Sprite = function(image) {
     this.width = 16;
     this.x = 0;
     this.y = 0;
+    this.velocity = {};
+    this.velocity.x = 0;
+    this.velocity.y = 0;
+    this.speed = 10;
+
+    this.handleKeyDown = function(keyEvent) {
+        switch (keyEvent.keyCode){
+            case Key.LEFT:
+                this.velocity.x = -this.speed;
+                break;
+            case Key.UP:
+                this.velocity.y = -this.speed;
+                break;
+            case Key.RIGHT:
+                this.velocity.x = this.speed;
+                break;
+            case Key.DOWN:
+                this.velocity.y = this.speed;
+                break;
+            default:
+                break;
+        }
+    }
+
+    this.handleKeyUp = function(keyEvent) {
+        switch (keyEvent.keyCode){
+            case Key.LEFT:
+                this.velocity.x = 0;
+                break;
+            case Key.UP:
+                this.velocity.y = 0;
+                break;
+            case Key.RIGHT:
+                this.velocity.x = 0;
+                break;
+            case Key.DOWN:
+                this.velocity.y = 0;
+                break;
+            default:
+                break;
+        }
+    }
+
+    this.update = function(delta) {
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+    }
 
     this.render = function(context) {
         context.drawImage(this.image, 0, 0, this.width, this.height, this.x, this.y, this.width, this.height);
     }
+}
+
+var Key = {
+    LEFT: 37,
+    UP: 38,
+    RIGHT: 39,
+    DOWN: 40
 }
