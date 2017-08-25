@@ -7,7 +7,7 @@ var context;
 var testImage;
 var spriteSheet;
 var playerSprites;
-var testTreeSprite;
+var treeGenerator;
 var objects;
 
 var init = function() {
@@ -23,7 +23,9 @@ var init = function() {
 
     objects = [];
     objects.push(playerSprite);
-    objects.push(new Sprite(spriteSheet, 1));
+
+    treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));
+    treeGenerator.plantTrees(100);
 
     document.addEventListener('keydown', function(event) {
         playerSprite.handleKeyDown(event);
@@ -153,6 +155,25 @@ var SpriteSheet = function(image, imageSize, frameSize) {
             this.frameSize.width,
             this.frameSize.height
         )
+    }
+}
+
+var TreeGenerator = function(treeSprite) {
+    var max = 500;
+    var min = 0;
+    var treeSprite = treeSprite;
+
+    this.plantTrees = function(treeCount) {
+        for (var i = 0; i < treeCount; i++) {
+            plantTree(treeSprite, Math.random() * (max - min) + min, Math.random() * (max - min) + min);
+        }
+    }
+
+    function plantTree(treeSprite, x, y) {
+        var treeSprite = new Sprite(spriteSheet, 1);
+        treeSprite.x = x;
+        treeSprite.y = y;
+        objects.push(treeSprite);
     }
 }
 
