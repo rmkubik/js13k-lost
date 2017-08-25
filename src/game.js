@@ -5,7 +5,9 @@ window.onload = function() {
 var canvas;
 var context;
 var testImage;
+var spriteSheet;
 var testSprite;
+var testTreeSprite;
 
 var init = function() {
     canvas = document.getElementById('canvas');
@@ -15,7 +17,9 @@ var init = function() {
 
     testImage = new Image();
     testImage.src = 'testasset.png';
-    testSprite = new Sprite(testImage);
+    spriteSheet = new SpriteSheet(testImage, { width: 128, height: 128 }, { width: 16, height: 16 });
+    testSprite = new Sprite(spriteSheet, 0);
+    testTreeSprite = new Sprite(spriteSheet, 1);
 
     document.addEventListener('keydown', function(event) {
         testSprite.handleKeyDown(event);
@@ -29,12 +33,14 @@ var update = function(delta) {
     var seconds = delta / 1000;
 
     testSprite.update(delta);
+    testTreeSprite.update(delta);
 }
 
 var render = function () {
-    context.fillStyle = 'green';
+    context.fillStyle = '#69a051';
     context.fillRect(0, 0, 500, 500);
     testSprite.render(context);
+    testTreeSprite.render(context);
 }
 
 var now = Date.now();
@@ -53,10 +59,9 @@ var interval = 1000 / 60;
 
 setInterval(tick, interval);
 
-var Sprite = function(image) {
-    this.image = image;
-    this.height = 16;
-    this.width = 16;
+var Sprite = function(spriteSheet, frame) {
+    this.spriteSheet = spriteSheet;
+    this.frame = frame;
     this.x = 0;
     this.y = 0;
     this.velocity = {};
@@ -108,7 +113,39 @@ var Sprite = function(image) {
     }
 
     this.render = function(context) {
-        context.drawImage(this.image, 0, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+        this.spriteSheet.drawFrame(context, this.frame, this.x, this.y);
+    }
+}
+
+/**
+ * 
+ * @param {Object} image - image to be used as a spritesheet
+ * @param {Object} imageSize - width and height of image
+ * @param {number} imageSize.width - width in pixels
+ * @param {number} imageSize.height - height in pixels
+ * @param {Object} frameSize - width and height of each frame in the sprite sheet
+ * @param {number} frameSize.width - width in pixels
+ * @param {number} frameSize.height - height in pixels
+ */
+var SpriteSheet = function(image, imageSize, frameSize) {
+    this.image = image;
+    this.imageSize = imageSize;
+    this.frameSize = frameSize;
+    var framesInRow = this.imageSize.width / this.frameSize.width;
+    var framesInCol = this.imageSize.height / this.frameSize.height;
+
+    this.drawFrame = function(context, frameIndex, x, y) {
+        context.drawImage(
+            this.image, 
+            frameIndex % framesInRow * this.frameSize.width, 
+            Math.floor(frameIndex / framesInCol) * this.frameSize.height,
+            this.frameSize.width,
+            this.frameSize.height,
+            x,
+            y,
+            this.frameSize.width,
+            this.frameSize.height
+        )
     }
 }
 
