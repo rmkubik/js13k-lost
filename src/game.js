@@ -6,8 +6,9 @@ var canvas;
 var context;
 var testImage;
 var spriteSheet;
-var testSprite;
+var playerSprites;
 var testTreeSprite;
+var objects;
 
 var init = function() {
     canvas = document.getElementById('canvas');
@@ -18,29 +19,35 @@ var init = function() {
     testImage = new Image();
     testImage.src = 'testasset.png';
     spriteSheet = new SpriteSheet(testImage, { width: 128, height: 128 }, { width: 16, height: 16 });
-    testSprite = new Sprite(spriteSheet, 0);
-    testTreeSprite = new Sprite(spriteSheet, 1);
+    playerSprite = new Sprite(spriteSheet, 0);
+
+    objects = [];
+    objects.push(playerSprite);
+    objects.push(new Sprite(spriteSheet, 1));
 
     document.addEventListener('keydown', function(event) {
-        testSprite.handleKeyDown(event);
+        playerSprite.handleKeyDown(event);
     });
     document.addEventListener('keyup', function(event) {
-        testSprite.handleKeyUp(event);
+        playerSprite.handleKeyUp(event);
     });
 }
 
 var update = function(delta) {
     var seconds = delta / 1000;
 
-    testSprite.update(delta);
-    testTreeSprite.update(delta);
+    objects.forEach(function(object) {
+        object.update(seconds);
+    }, this);
 }
 
 var render = function () {
     context.fillStyle = '#69a051';
     context.fillRect(0, 0, 500, 500);
-    testSprite.render(context);
-    testTreeSprite.render(context);
+
+    objects.forEach(function(object) {
+        object.render(context);
+    }, this);
 }
 
 var now = Date.now();
