@@ -187,6 +187,26 @@ var TreeGenerator = function(treeSprite) {
     }
 }
 
+var Body = function(position, size) {
+    this.position = position;
+    this.size = size;
+
+    /**
+     * @param {Object} other - other body to check for collision against
+     * @param {Object} other.position - location point of other body
+     * @param {Object} other.size - dimensions of other body
+     */
+    this.collide = function(other) {
+        if (this.position.x < other.position.x + other.size.width &&
+            this.position.x + this.size.width > other.position.x &&
+            this.position.y < other.position.y + other.size.height &&
+            this.size.height + this.position.y > other.position.y) {
+             return true;
+         }
+         return false;
+    }
+}
+
 var Key = {
     LEFT: 37,
     UP: 38,
