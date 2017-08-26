@@ -119,6 +119,11 @@ var Sprite = function(spriteSheet, frame) {
     this.update = function(delta) {
         this.x += this.velocity.x;
         this.y += this.velocity.y;
+
+        // depth sort all objects in the game
+        objects.sort(function (a, b) {
+            return a.y - b.y;
+        });
     }
 
     this.render = function(context) {
