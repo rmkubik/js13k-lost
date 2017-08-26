@@ -46,7 +46,7 @@ var update = function(delta, objects) {
 }
 
 var render = function (objects) {
-    context.fillStyle = '#69a051';
+    context.fillStyle = '#83c168';
     context.fillRect(0, 0, 500, 500);
 
     objects.forEach(function(object) {
