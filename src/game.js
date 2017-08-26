@@ -142,18 +142,21 @@ var SpriteSheet = function(image, imageSize, frameSize) {
     this.frameSize = frameSize;
     var framesInRow = this.imageSize.width / this.frameSize.width;
     var framesInCol = this.imageSize.height / this.frameSize.height;
+    const PADDING = 1;
 
     this.drawFrame = function(context, frameIndex, x, y) {
+        var col = frameIndex % framesInRow;
+        var row = Math.floor(frameIndex / framesInCol);
         context.drawImage(
             this.image, 
-            frameIndex % framesInRow * this.frameSize.width, 
-            Math.floor(frameIndex / framesInCol) * this.frameSize.height,
+            col * (this.frameSize.width + PADDING), 
+            row * (this.frameSize.height + PADDING),
             this.frameSize.width,
             this.frameSize.height,
             x,
             y,
-            this.frameSize.width,
-            this.frameSize.height
+            this.frameSize.width * 2,
+            this.frameSize.height * 2
         )
     }
 }
