@@ -37,7 +37,7 @@ var init = function() {
     });
 }
 
-var update = function(delta) {
+var update = function(delta, objects) {
     var seconds = delta / 1000;
 
     objects.forEach(function(object) {
@@ -45,7 +45,7 @@ var update = function(delta) {
     }, this);
 }
 
-var render = function () {
+var render = function (objects) {
     context.fillStyle = '#69a051';
     context.fillRect(0, 0, 500, 500);
 
@@ -59,9 +59,9 @@ var now = Date.now();
 var tick = function() {
     var delta = Date.now() - now;
 
-    update(delta);
+    update(delta, objects);
     
-    render();
+    render(objects);
 
     now = Date.now();
 }
