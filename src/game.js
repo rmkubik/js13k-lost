@@ -25,7 +25,7 @@ var init = function() {
     objects.push(playerSprite);
 
     treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));
-    treeGenerator.plantTrees(100);
+    treeGenerator.plantTrees(35);
 
     document.addEventListener('keydown', function(event) {
         playerSprite.handleKeyDown(event);
@@ -76,7 +76,7 @@ var Sprite = function(spriteSheet, frame) {
     this.velocity = {};
     this.velocity.x = 0;
     this.velocity.y = 0;
-    this.speed = 10;
+    this.speed = 3;
 
     this.handleKeyDown = function(keyEvent) {
         switch (keyEvent.keyCode){
