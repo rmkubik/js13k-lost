@@ -21,7 +21,7 @@ var init = function() {
     testImage = new Image();
     testImage.src = 'testasset.png';
     spriteSheet = new SpriteSheet(testImage, SPRITESHEET_DIMENSIONS, SPRITESHEET_FRAME_DIMENSIONS);
-    playerSprite = new Sprite(spriteSheet, 0);
+    playerSprite = new Sprite(spriteSheet, 2);
 
     objects = [];
     objects.push(playerSprite);
@@ -79,6 +79,7 @@ var Sprite = function(spriteSheet, frame) {
     this.velocity.x = 0;
     this.velocity.y = 0;
     this.speed = 3;
+    this.body = new Body({x: this.x, y: this.y}, SPRITESHEET_FRAME_DIMENSIONS);        
 
     this.handleKeyDown = function(keyEvent) {
         switch (keyEvent.keyCode){
