@@ -9,6 +9,8 @@ var spriteSheet;
 var playerSprites;
 var treeGenerator;
 var objects;
+const SPRITESHEET_DIMENSIONS = { width: 128, height: 128 };
+const SPRITESHEET_FRAME_DIMENSIONS = { width: 16, height: 16 };
 
 var init = function() {
     canvas = document.getElementById('canvas');
@@ -18,7 +20,7 @@ var init = function() {
 
     testImage = new Image();
     testImage.src = 'testasset.png';
-    spriteSheet = new SpriteSheet(testImage, { width: 128, height: 128 }, { width: 16, height: 16 });
+    spriteSheet = new SpriteSheet(testImage, SPRITESHEET_DIMENSIONS, SPRITESHEET_FRAME_DIMENSIONS);
     playerSprite = new Sprite(spriteSheet, 0);
 
     objects = [];
