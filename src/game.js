@@ -42,9 +42,16 @@ var update = function(delta, objects) {
         object.update(seconds);
     }, this);
 
+    var collisions = [];
     // are any objects colliding now?
+    objects.forEach(function(object) {
+        if (playerSprite.body.collide(object.body)) {
+            collisions.push(object);
+        }
+    }, this);
 
     // fix positions of colliding objects (and adjust velocities?)
+    console.log(collisions);
 
     // depth sort all objects in the game
     objects.sort(function (a, b) {
@@ -89,7 +96,7 @@ var Sprite = function(spriteSheet, frame, movable) {
         y: 0
     };
     this.speed = 3;
-    this.body = new Body({x: this.position.x, y: this.position.y}, SPRITESHEET_FRAME_DIMENSIONS, movable);        
+    this.body = new Body(this.position, SPRITESHEET_FRAME_DIMENSIONS, movable);        
 
     this.update = function(delta) {
         if (this.body.movable) {
@@ -173,7 +180,8 @@ var TreeGenerator = function(treeSprite) {
 
     function plantTree(treeSprite, x, y) {
         var treeSprite = new Sprite(spriteSheet, 1, false);
-        treeSprite.position = {x: x, y: y};
+        treeSprite.position.x = x;
+        treeSprite.position.y = y;
         objects.push(treeSprite);
     }
 }
