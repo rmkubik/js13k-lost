@@ -45,13 +45,59 @@ var update = function(delta, objects) {
     var collisions = [];
     // are any objects colliding now?
     objects.forEach(function(object) {
-        if (playerSprite.body.collide(object.body)) {
+        if (playerSprite.body.collide(object.body) && playerSprite.id !== object.id) {
             collisions.push(object);
         }
     }, this);
 
     // fix positions of colliding objects (and adjust velocities?)
-    console.log(collisions);
+    if (collisions.length > 0) console.log(collisions);
+    collisions.forEach(function(object) {
+        const PLAYER_CENTER = {
+            x: playerSprite.body.position.x + Math.floor(playerSprite.body.size.width / 2),
+            y: playerSprite.body.position.y + Math.floor(playerSprite.body.size.height / 2)
+        }
+        const OBJECT_CENTER = {
+            x: object.body.position.x + Math.floor(object.body.size.width / 2),
+            y: object.body.position.y + Math.floor(object.body.size.height / 2)
+        }
+        const DISPLACEMENT = {
+            x: PLAYER_CENTER.x - OBJECT_CENTER.x,
+            y: PLAYER_CENTER.y - OBJECT_CENTER.y
+        }
+        
+        // up diagonals
+        if (inputHandler.keys.left.isDown & inputHandler.keys.up.isDown) {
+            playerSprite.position.x += DISPLACEMENT.x;
+            playerSprite.position.y += DISPLACEMENT.y;
+        } else if (inputHandler.keys.right.isDown & inputHandler.keys.up.isDown) {
+            playerSprite.position.x += DISPLACEMENT.x;
+            playerSprite.position.y += DISPLACEMENT.y;
+        }
+
+        // down diagonals
+        if (inputHandler.keys.left.isDown & inputHandler.keys.down.isDown) {
+            playerSprite.position.x += DISPLACEMENT.x;
+            playerSprite.position.y += DISPLACEMENT.y;
+        } else if (inputHandler.keys.right.isDown & inputHandler.keys.down.isDown) {
+            playerSprite.position.x += DISPLACEMENT.x;
+            playerSprite.position.y += DISPLACEMENT.y;
+        }
+
+        // left & right only
+        if (inputHandler.keys.left.isDown) {
+            playerSprite.position.x += DISPLACEMENT.x;
+        } else if (inputHandler.keys.right.isDown) {
+            playerSprite.position.x += DISPLACEMENT.x;
+        }
+
+        // up & down only
+        if (inputHandler.keys.up.isDown) {
+            playerSprite.position.y += DISPLACEMENT.y;
+        } else if (inputHandler.keys.down.isDown) {
+            playerSprite.position.y += DISPLACEMENT.y;
+        } 
+    }, this);
 
     // depth sort all objects in the game
     objects.sort(function (a, b) {
@@ -96,7 +142,8 @@ var Sprite = function(spriteSheet, frame, movable) {
         y: 0
     };
     this.speed = 3;
-    this.body = new Body(this.position, SPRITESHEET_FRAME_DIMENSIONS, movable);        
+    this.body = new Body(this.position, SPRITESHEET_FRAME_DIMENSIONS, movable);  
+    this.id = GetGUID();      
 
     this.update = function(delta) {
         if (this.body.movable) {
@@ -174,7 +221,11 @@ var TreeGenerator = function(treeSprite) {
 
     this.plantTrees = function(treeCount) {
         for (var i = 0; i < treeCount; i++) {
-            plantTree(treeSprite, Math.random() * (max - min) + min, Math.random() * (max - min) + min);
+            plantTree(
+                treeSprite, 
+                Math.floor(Math.random() * (max - min) + min), 
+                Math.floor(Math.random() * (max - min) + min)
+            );
         }
     }
 
@@ -247,4 +298,9 @@ var InputHandler = function() {
 var Key = function(code) {
     this.CODE = code;
     this.isDown = false;
+}
+
+var guid = 0;
+function GetGUID() {
+    return guid++;
 }
