@@ -6,7 +6,7 @@ var canvas;
 var context;
 var testImage;
 var spriteSheet;
-var playerSprites;
+var playerSprite;
 var treeGenerator;
 var objects;
 var inputHandler;
@@ -80,29 +80,33 @@ setInterval(tick, interval);
 var Sprite = function(spriteSheet, frame, movable) {
     this.spriteSheet = spriteSheet;
     this.frame = frame;
-    this.x = 0;
-    this.y = 0;
-    this.velocity = {};
-    this.velocity.x = 0;
-    this.velocity.y = 0;
+    this.position = {
+        x: 0,
+        y: 0
+    }
+    this.velocity = {
+        x: 0,
+        y: 0
+    };
     this.speed = 3;
-    this.body = new Body({x: this.x, y: this.y}, SPRITESHEET_FRAME_DIMENSIONS, movable);        
+    this.body = new Body({x: this.position.x, y: this.position.y}, SPRITESHEET_FRAME_DIMENSIONS, movable);        
 
     this.update = function(delta) {
         if (this.body.movable) {
             handleInputs(inputHandler.keys, this.velocity, this.speed);
             
-            this.x += this.velocity.x;
-            this.y += this.velocity.y;
+            this.position.x += this.velocity.x;
+            this.position.y += this.velocity.y;
         }
     }
 
     this.render = function(context) {
-        this.spriteSheet.drawFrame(context, this.frame, this.x, this.y);
+        this.spriteSheet.drawFrame(context, this.frame, this.position.x, this.position.y);
     }
 
     var handleInputs = function(keys, velocity, speed) {
         // handle the 4 diagonals differently, they're faster now
+        // if both left & right or up & down, character should stop moving?
         if (keys.left.isDown) {
             velocity.x = -speed;
         } else if (keys.right.isDown) {
@@ -169,8 +173,7 @@ var TreeGenerator = function(treeSprite) {
 
     function plantTree(treeSprite, x, y) {
         var treeSprite = new Sprite(spriteSheet, 1, false);
-        treeSprite.x = x;
-        treeSprite.y = y;
+        treeSprite.position = {x: x, y: y};
         objects.push(treeSprite);
     }
 }
