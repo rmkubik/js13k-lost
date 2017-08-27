@@ -9,6 +9,7 @@ var spriteSheet;
 var playerSprites;
 var treeGenerator;
 var objects;
+var inputHandler;
 const SPRITESHEET_DIMENSIONS = { width: 128, height: 128 };
 const SPRITESHEET_FRAME_DIMENSIONS = { width: 16, height: 16 };
 
@@ -21,7 +22,7 @@ var init = function() {
     testImage = new Image();
     testImage.src = 'testasset.png';
     spriteSheet = new SpriteSheet(testImage, SPRITESHEET_DIMENSIONS, SPRITESHEET_FRAME_DIMENSIONS);
-    playerSprite = new Sprite(spriteSheet, 2);
+    playerSprite = new Sprite(spriteSheet, 2, true);
 
     objects = [];
     objects.push(playerSprite);
@@ -29,20 +30,26 @@ var init = function() {
     treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));
     treeGenerator.plantTrees(35);
 
-    document.addEventListener('keydown', function(event) {
-        playerSprite.handleKeyDown(event);
-    });
-    document.addEventListener('keyup', function(event) {
-        playerSprite.handleKeyUp(event);
-    });
+    inputHandler = new InputHandler()
 }
 
 var update = function(delta, objects) {
     var seconds = delta / 1000;
 
+    //handle user inputs
+    // process velocity & game logic changes on objects
     objects.forEach(function(object) {
         object.update(seconds);
     }, this);
+
+    // are any objects colliding now?
+
+    // fix positions of colliding objects (and adjust velocities?)
+
+    // depth sort all objects in the game
+    objects.sort(function (a, b) {
+        return a.y - b.y;
+    });
 }
 
 var render = function (objects) {
@@ -70,7 +77,7 @@ var interval = 1000 / 60;
 
 setInterval(tick, interval);
 
-var Sprite = function(spriteSheet, frame) {
+var Sprite = function(spriteSheet, frame, movable) {
     this.spriteSheet = spriteSheet;
     this.frame = frame;
     this.x = 0;
@@ -79,58 +86,38 @@ var Sprite = function(spriteSheet, frame) {
     this.velocity.x = 0;
     this.velocity.y = 0;
     this.speed = 3;
-    this.body = new Body({x: this.x, y: this.y}, SPRITESHEET_FRAME_DIMENSIONS);        
-
-    this.handleKeyDown = function(keyEvent) {
-        switch (keyEvent.keyCode){
-            case Key.LEFT:
-                this.velocity.x = -this.speed;
-                break;
-            case Key.UP:
-                this.velocity.y = -this.speed;
-                break;
-            case Key.RIGHT:
-                this.velocity.x = this.speed;
-                break;
-            case Key.DOWN:
-                this.velocity.y = this.speed;
-                break;
-            default:
-                break;
-        }
-    }
-
-    this.handleKeyUp = function(keyEvent) {
-        switch (keyEvent.keyCode){
-            case Key.LEFT:
-                this.velocity.x = 0;
-                break;
-            case Key.UP:
-                this.velocity.y = 0;
-                break;
-            case Key.RIGHT:
-                this.velocity.x = 0;
-                break;
-            case Key.DOWN:
-                this.velocity.y = 0;
-                break;
-            default:
-                break;
-        }
-    }
+    this.body = new Body({x: this.x, y: this.y}, SPRITESHEET_FRAME_DIMENSIONS, movable);        
 
     this.update = function(delta) {
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
-
-        // depth sort all objects in the game
-        objects.sort(function (a, b) {
-            return a.y - b.y;
-        });
+        if (this.body.movable) {
+            handleInputs(inputHandler.keys, this.velocity, this.speed);
+            
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+        }
     }
 
     this.render = function(context) {
         this.spriteSheet.drawFrame(context, this.frame, this.x, this.y);
+    }
+
+    var handleInputs = function(keys, velocity, speed) {
+        // handle the 4 diagonals differently, they're faster now
+        if (keys.left.isDown) {
+            velocity.x = -speed;
+        } else if (keys.right.isDown) {
+            velocity.x = speed;
+        } else {
+            velocity.x = 0;            
+        }
+
+        if (keys.up.isDown) {
+            velocity.y = -speed;
+        } else if (keys.down.isDown) {
+            velocity.y = speed;
+        } else {
+            velocity.y = 0;            
+        }
     }
 }
 
@@ -181,16 +168,17 @@ var TreeGenerator = function(treeSprite) {
     }
 
     function plantTree(treeSprite, x, y) {
-        var treeSprite = new Sprite(spriteSheet, 1);
+        var treeSprite = new Sprite(spriteSheet, 1, false);
         treeSprite.x = x;
         treeSprite.y = y;
         objects.push(treeSprite);
     }
 }
 
-var Body = function(position, size) {
+var Body = function(position, size, movable) {
     this.position = position;
     this.size = size;
+    this.movable = movable;
 
     /**
      * @param {Object} other - other body to check for collision against
@@ -208,9 +196,44 @@ var Body = function(position, size) {
     }
 }
 
-var Key = {
-    LEFT: 37,
-    UP: 38,
-    RIGHT: 39,
-    DOWN: 40
+var InputHandler = function() {
+    this.keys = {
+        left: new Key(37),
+        up: new Key(38),
+        right: new Key(39),
+        down: new Key(40)
+    }
+
+    document.addEventListener('keydown', function(keyEvent) {
+        this.keys = setKeyDown(this.keys, keyEvent.keyCode, true);
+    }.bind(this));
+
+    document.addEventListener('keyup', function(keyEvent) {
+        this.keys = setKeyDown(this.keys, keyEvent.keyCode, false);
+    }.bind(this));
+
+    function setKeyDown(keys, keyCode, isDown) {
+        switch (keyCode) {
+            case keys.left.CODE:
+                keys.left.isDown = isDown;
+                break;
+            case keys.up.CODE:
+                keys.up.isDown = isDown;
+                break;
+            case keys.right.CODE:
+                keys.right.isDown = isDown;
+                break;
+            case keys.down.CODE:
+                keys.down.isDown = isDown;
+                break;
+            default:
+                break;
+        }
+        return keys;
+    }
+}
+
+var Key = function(code) {
+    this.CODE = code;
+    this.isDown = false;
 }
