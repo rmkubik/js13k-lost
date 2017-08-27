@@ -55,7 +55,7 @@ var update = function(delta, objects) {
 
     // depth sort all objects in the game
     objects.sort(function (a, b) {
-        return a.y - b.y;
+        return a.position.y - b.position.y;
     });
 }
 
