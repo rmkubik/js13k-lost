@@ -10,6 +10,7 @@ var playerSprite;
 var treeGenerator;
 var objects;
 var inputHandler;
+var colisionResolver;
 const SPRITESHEET_DIMENSIONS = { width: 128, height: 128 };
 const SPRITESHEET_FRAME_DIMENSIONS = { width: 16, height: 16 };
 
@@ -31,6 +32,7 @@ var init = function() {
     treeGenerator.plantTrees(35);
 
     inputHandler = new InputHandler()
+    collisionResolver = new CollisionResolver();
 }
 
 var update = function(delta, objects) {
@@ -51,52 +53,56 @@ var update = function(delta, objects) {
     }, this);
 
     // fix positions of colliding objects (and adjust velocities?)
-    if (collisions.length > 0) console.log(collisions);
-    collisions.forEach(function(object) {
+    collisions.forEach(function(other) {
         const PLAYER_CENTER = {
             x: playerSprite.body.position.x + Math.floor(playerSprite.body.size.width / 2),
             y: playerSprite.body.position.y + Math.floor(playerSprite.body.size.height / 2)
         }
-        const OBJECT_CENTER = {
-            x: object.body.position.x + Math.floor(object.body.size.width / 2),
-            y: object.body.position.y + Math.floor(object.body.size.height / 2)
+        const OTHER_CENTER = {
+            x: other.body.position.x + Math.floor(other.body.size.width / 2),
+            y: other.body.position.y + Math.floor(other.body.size.height / 2)
         }
         const DISPLACEMENT = {
-            x: PLAYER_CENTER.x - OBJECT_CENTER.x,
-            y: PLAYER_CENTER.y - OBJECT_CENTER.y
+            x: PLAYER_CENTER.x - OTHER_CENTER.x,
+            y: PLAYER_CENTER.y - OTHER_CENTER.y
         }
         
         // up diagonals
         if (inputHandler.keys.left.isDown & inputHandler.keys.up.isDown) {
-            playerSprite.position.x += DISPLACEMENT.x;
-            playerSprite.position.y += DISPLACEMENT.y;
+
         } else if (inputHandler.keys.right.isDown & inputHandler.keys.up.isDown) {
-            playerSprite.position.x += DISPLACEMENT.x;
-            playerSprite.position.y += DISPLACEMENT.y;
-        }
+            if (DISPLACEMENT.x < 0 && DISPLACEMENT.y < 0) {
+                // top left quadrant
+                collisionResolver.resolveRight(playerSprite, other);
+            } else if (DISPLACEMENT.x > 0 && DISPLACEMENT.y > 0) {
+                // bottom right quadrant
+                collisionResolver.resolveUp(playerSprite, other);
+            } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
+                // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                collisionResolver.resolveRight(playerSprite, other);
+            } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
+                // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                collisionResolver.resolveUp(playerSprite, other);
+            }
+        } else if (inputHandler.keys.left.isDown & inputHandler.keys.down.isDown) {
 
-        // down diagonals
-        if (inputHandler.keys.left.isDown & inputHandler.keys.down.isDown) {
-            playerSprite.position.x += DISPLACEMENT.x;
-            playerSprite.position.y += DISPLACEMENT.y;
         } else if (inputHandler.keys.right.isDown & inputHandler.keys.down.isDown) {
-            playerSprite.position.x += DISPLACEMENT.x;
-            playerSprite.position.y += DISPLACEMENT.y;
-        }
 
-        // left & right only
-        if (inputHandler.keys.left.isDown) {
-            playerSprite.position.x += DISPLACEMENT.x;
-        } else if (inputHandler.keys.right.isDown) {
-            playerSprite.position.x += DISPLACEMENT.x;
-        }
+        } else {
+            // left & right only
+            if (inputHandler.keys.left.isDown) {
+                collisionResolver.resolveLeft(playerSprite, other);
+            } else if (inputHandler.keys.right.isDown) {
+                collisionResolver.resolveRight(playerSprite, other);
+            }
 
-        // up & down only
-        if (inputHandler.keys.up.isDown) {
-            playerSprite.position.y += DISPLACEMENT.y;
-        } else if (inputHandler.keys.down.isDown) {
-            playerSprite.position.y += DISPLACEMENT.y;
-        } 
+            // up & down only
+            if (inputHandler.keys.up.isDown) {
+                collisionResolver.resolveUp(playerSprite, other);
+            } else if (inputHandler.keys.down.isDown) {
+                collisionResolver.resolveDown(playerSprite, other);
+            } 
+        }
     }, this);
 
     // depth sort all objects in the game
@@ -292,6 +298,20 @@ var InputHandler = function() {
                 break;
         }
         return keys;
+    }
+}
+var CollisionResolver = function() {
+    this.resolveUp = function(player, other) {
+        player.position.y -= player.body.position.y - (other.body.position.y + other.body.size.height);    
+    }
+    this.resolveDown = function(player, other) {
+        player.position.y -= player.body.position.y + player.body.size.height - other.body.position.y;
+    }
+    this.resolveLeft = function(player, other) {
+        player.position.x -= player.body.position.x - (other.body.position.x + other.body.size.width);
+    }
+    this.resolveRight = function(player, other) {
+        player.position.x -= player.body.position.x + player.body.size.width - other.body.position.x;
     }
 }
 
