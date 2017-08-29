@@ -8,17 +8,20 @@ var testImage;
 var spriteSheet;
 var playerSprite;
 var treeGenerator;
+var chunkMap;
 var objects;
 var inputHandler;
 var colisionResolver;
 const SPRITESHEET_DIMENSIONS = { width: 128, height: 128 };
 const SPRITESHEET_FRAME_DIMENSIONS = { width: 16, height: 16 };
+const CANVAS_WIDTH = 500;
+const CANVAS_HEIGHT = 500;
 
 var init = function() {
     canvas = document.getElementById('canvas');
     context = canvas.getContext('2d');
-    canvas.height = 500;
-    canvas.width = 500;
+    canvas.height = CANVAS_HEIGHT;
+    canvas.width = CANVAS_WIDTH;
 
     testImage = new Image();
     testImage.src = 'testasset.png';
@@ -28,6 +31,7 @@ var init = function() {
     objects = [];
     objects.push(playerSprite);
 
+    chunkMap = new ChunkMap();
     treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));
     treeGenerator.plantTrees(35);
 
@@ -145,6 +149,8 @@ var update = function(delta, objects) {
     objects.sort(function (a, b) {
         return a.position.y - b.position.y;
     });
+
+    chunkMap.updateChunks(playerSprite.position);
 }
 
 var render = function (objects) {
@@ -197,6 +203,8 @@ var Sprite = function(spriteSheet, frame, movable) {
     }
 
     this.render = function(context) {
+        // this needs to take the true position of the sprite in the game world and
+        // render it relative to the current chunk instead
         this.spriteSheet.drawFrame(context, this.frame, this.position.x, this.position.y);
     }
 
@@ -254,6 +262,59 @@ var SpriteSheet = function(image, imageSize, frameSize) {
             this.frameSize.height * 2
         )
     }
+}
+
+var ChunkMap = function(seed) {
+    var seed = seed;
+    var currentChunks = {};
+    var chunkSize = {height: CANVAS_HEIGHT, width: CANVAS_WIDTH}
+    var currentChunkPosition = {x: 0, y: 0};
+
+    this.updateChunks = function(playerPosition) {
+        // find which chunk the player has moved into
+        var newChunkPosition = {
+            x: Math.floor(playerPosition.x / chunkSize.width),
+            y: Math.floor(playerPosition.y / chunkSize.height)
+        }
+        const DISPLACEMENT = {
+            x: newChunkPosition.x - currentChunkPosition.x,
+            y: newChunkPosition.y - currentChunkPosition.y
+        }
+        if (DISPLACEMENT.x == -1 && DISPLACEMENT.y == -1) {
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y + 1]];
+            delete currentChunks[[currentChunkPosition.x, currentChunkPosition.y + 1]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y + 1]]; 
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y]] = new Chunk(seed);       
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y - 1]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y - 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x, currentChunkPosition.y - 2]] = new Chunk(seed); 
+        } else if (DISPLACEMENT.x == 0 && DISPLACEMENT.y == -1) {
+            
+        } else if (DISPLACEMENT.x == 1 && DISPLACEMENT.y == -1) {
+            
+        } else if (DISPLACEMENT.x == 1 && DISPLACEMENT.y == 0) {
+            
+        } else if (DISPLACEMENT.x == 1 && DISPLACEMENT.y == 1) {
+            
+        } else if (DISPLACEMENT.x == 0 && DISPLACEMENT.y == 1) {
+            
+        } else if (DISPLACEMENT.x == -1 && DISPLACEMENT.y == 1) {
+            
+        } else if (DISPLACEMENT.x == -1 && DISPLACEMENT.y == 0) {
+            
+        }
+        currentChunkPosition = newChunkPosition;
+        if (DISPLACEMENT.x !== 0 || DISPLACEMENT.y !== 0) console.log(DISPLACEMENT);
+    }
+}
+
+var Chunk = function(seed) {
+    var seed = seed;
+
+    console.log("NEW CHUNK SPAWNED");
 }
 
 var TreeGenerator = function(treeSprite) {
