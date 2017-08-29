@@ -97,9 +97,33 @@ var update = function(delta, objects) {
                 collisionResolver.resolveUp(playerSprite, other);
             }
         } else if (inputHandler.keys.left.isDown & inputHandler.keys.down.isDown) {
-
+            if (DISPLACEMENT.x < 0 && DISPLACEMENT.y < 0) {
+                // top left quadrant
+                collisionResolver.resolveDown(playerSprite, other);
+            } else if (DISPLACEMENT.x > 0 && DISPLACEMENT.y > 0) {
+                // bottom right quadrant
+                collisionResolver.resolveLeft(playerSprite, other);
+            } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
+                // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                collisionResolver.resolveLeft(playerSprite, other);
+            } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
+                // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                collisionResolver.resolveDown(playerSprite, other);
+            }
         } else if (inputHandler.keys.right.isDown & inputHandler.keys.down.isDown) {
-
+            if (DISPLACEMENT.x > 0 && DISPLACEMENT.y < 0) {
+                // top left quadrant
+                collisionResolver.resolveDown(playerSprite, other);
+            } else if (DISPLACEMENT.x < 0 && DISPLACEMENT.y > 0) {
+                // bottom right quadrant
+                collisionResolver.resolveRight(playerSprite, other);
+            } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
+                // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                collisionResolver.resolveRight(playerSprite, other);
+            } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
+                // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                collisionResolver.resolveDown(playerSprite, other);
+            }
         } else {
             // left & right only
             if (inputHandler.keys.left.isDown) {
