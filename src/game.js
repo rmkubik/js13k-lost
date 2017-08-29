@@ -300,6 +300,21 @@ var Body = function(position, size, movable) {
     }
 }
 
+var CollisionResolver = function() {
+    this.resolveUp = function(player, other) {
+        player.position.y -= player.body.position.y - (other.body.position.y + other.body.size.height);    
+    }
+    this.resolveDown = function(player, other) {
+        player.position.y -= player.body.position.y + player.body.size.height - other.body.position.y;
+    }
+    this.resolveLeft = function(player, other) {
+        player.position.x -= player.body.position.x - (other.body.position.x + other.body.size.width);
+    }
+    this.resolveRight = function(player, other) {
+        player.position.x -= player.body.position.x + player.body.size.width - other.body.position.x;
+    }
+}
+
 var InputHandler = function() {
     this.keys = {
         left: new Key(37),
@@ -334,20 +349,6 @@ var InputHandler = function() {
                 break;
         }
         return keys;
-    }
-}
-var CollisionResolver = function() {
-    this.resolveUp = function(player, other) {
-        player.position.y -= player.body.position.y - (other.body.position.y + other.body.size.height);    
-    }
-    this.resolveDown = function(player, other) {
-        player.position.y -= player.body.position.y + player.body.size.height - other.body.position.y;
-    }
-    this.resolveLeft = function(player, other) {
-        player.position.x -= player.body.position.x - (other.body.position.x + other.body.size.width);
-    }
-    this.resolveRight = function(player, other) {
-        player.position.x -= player.body.position.x + player.body.size.width - other.body.position.x;
     }
 }
 
