@@ -31,12 +31,11 @@ var init = function() {
     objects = [];
     objects.push(playerSprite);
 
-    chunkMap = new ChunkMap();
-    treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));
-    treeGenerator.plantTrees(35);
-
     inputHandler = new InputHandler()
     collisionResolver = new CollisionResolver();
+
+    treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));    
+    chunkMap = new ChunkMap(0);
 }
 
 var update = function(delta, objects) {
@@ -189,7 +188,7 @@ var Sprite = function(spriteSheet, frame, movable) {
         x: 0,
         y: 0
     };
-    this.speed = 3;
+    this.speed = 300;
     this.body = new Body(this.position, SPRITESHEET_FRAME_DIMENSIONS, movable);  
     this.id = GetGUID();      
 
@@ -197,8 +196,8 @@ var Sprite = function(spriteSheet, frame, movable) {
         if (this.body.movable) {
             handleInputs(inputHandler.keys, this.velocity, this.speed);
             
-            this.position.x += this.velocity.x;
-            this.position.y += this.velocity.y;
+            this.position.x += this.velocity.x * delta;
+            this.position.y += this.velocity.y * delta;
         }
     }
 
@@ -213,7 +212,7 @@ var Sprite = function(spriteSheet, frame, movable) {
                 context, 
                 this.frame, 
                 this.position.x - playerSprite.position.x + Math.floor(CANVAS_WIDTH / 2), 
-                this.position.y - playerSprite.position.y + Math.floor(CANVAS_HEIGHT/ 2)
+                this.position.y - playerSprite.position.y + Math.floor(CANVAS_HEIGHT / 2)
             );            
         }
     }
@@ -384,24 +383,37 @@ var ChunkMap = function(seed) {
             console.log(currentChunks);
         } 
     }
+
+    function addChunk(seed, chunkPosition) {
+        currentChunks[[chunkPosition.x, chunkPosition.y]] = new Chunk(seed, chunkPosition);               
+    }
 }
 
-var Chunk = function(seed) {
+var Chunk = function(seed, position) {
+    var position = position;
     var seed = seed;
-
+    treeGenerator.plantTrees(
+        35, 
+        {
+            min: position.x * CANVAS_WIDTH, 
+            max: position.x * CANVAS_WIDTH + CANVAS_WIDTH
+        }, 
+        {
+            min: position.y * CANVAS_HEIGHT, 
+            max: position.y * CANVAS_HEIGHT + CANVAS_HEIGHT
+        }
+    );
 }
 
 var TreeGenerator = function(treeSprite) {
-    var max = 500;
-    var min = 0;
     var treeSprite = treeSprite;
 
-    this.plantTrees = function(treeCount) {
+    this.plantTrees = function(treeCount, xRange, yRange) {
         for (var i = 0; i < treeCount; i++) {
             plantTree(
                 treeSprite, 
-                Math.floor(Math.random() * (max - min) + min), 
-                Math.floor(Math.random() * (max - min) + min)
+                Math.floor(Math.random() * (xRange.max - xRange.min) + xRange.min), 
+                Math.floor(Math.random() * (yRange.max - yRange.min) + yRange.min)
             );
         }
     }
