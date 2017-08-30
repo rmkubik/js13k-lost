@@ -205,7 +205,17 @@ var Sprite = function(spriteSheet, frame, movable) {
     this.render = function(context) {
         // this needs to take the true position of the sprite in the game world and
         // render it relative to the current chunk instead
-        this.spriteSheet.drawFrame(context, this.frame, this.position.x, this.position.y);
+        // render everything relative to player?
+        if (this.id === playerSprite.id) {
+            this.spriteSheet.drawFrame(context, this.frame, Math.floor(CANVAS_WIDTH / 2), Math.floor(CANVAS_HEIGHT/ 2));            
+        } else {
+            this.spriteSheet.drawFrame(
+                context, 
+                this.frame, 
+                this.position.x - playerSprite.position.x + Math.floor(CANVAS_WIDTH / 2), 
+                this.position.y - playerSprite.position.y + Math.floor(CANVAS_HEIGHT/ 2)
+            );            
+        }
     }
 
     var handleInputs = function(keys, velocity, speed) {
