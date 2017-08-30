@@ -280,6 +280,16 @@ var ChunkMap = function(seed) {
     var chunkSize = {height: CANVAS_HEIGHT, width: CANVAS_WIDTH}
     var currentChunkPosition = {x: 0, y: 0};
 
+    currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 1]] = new Chunk(seed);       
+    currentChunks[[currentChunkPosition.x, currentChunkPosition.y - 1]] = new Chunk(seed); 
+    currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y - 1]] = new Chunk(seed); 
+    currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y]] = new Chunk(seed); 
+    currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y + 1]] = new Chunk(seed); 
+    currentChunks[[currentChunkPosition.x, currentChunkPosition.y + 1]] = new Chunk(seed); 
+    currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y + 1]] = new Chunk(seed); 
+    currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y]] = new Chunk(seed); 
+    currentChunks[[currentChunkPosition.x, currentChunkPosition.y]] = new Chunk(seed); 
+
     this.updateChunks = function(playerPosition) {
         // find which chunk the player has moved into
         var newChunkPosition = {
@@ -290,6 +300,11 @@ var ChunkMap = function(seed) {
             x: newChunkPosition.x - currentChunkPosition.x,
             y: newChunkPosition.y - currentChunkPosition.y
         }
+        loadChunks(DISPLACEMENT, newChunkPosition);
+    }
+
+    function loadChunks(DISPLACEMENT, newChunkPosition) {
+        // load new chunks based on new chunk player moved into
         if (DISPLACEMENT.x == -1 && DISPLACEMENT.y == -1) {
             delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y - 1]];
             delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y]];
@@ -302,29 +317,78 @@ var ChunkMap = function(seed) {
             currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 2]] = new Chunk(seed); 
             currentChunks[[currentChunkPosition.x, currentChunkPosition.y - 2]] = new Chunk(seed); 
         } else if (DISPLACEMENT.x == 0 && DISPLACEMENT.y == -1) {
-            
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y + 1]];
+            delete currentChunks[[currentChunkPosition.x, currentChunkPosition.y + 1]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y + 1]];
+            currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 2]] = new Chunk(seed);       
+            currentChunks[[currentChunkPosition.x, currentChunkPosition.y - 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y - 2]] = new Chunk(seed); 
         } else if (DISPLACEMENT.x == 1 && DISPLACEMENT.y == -1) {
-            
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y + 1]];
+            delete currentChunks[[currentChunkPosition.x, currentChunkPosition.y + 1]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y + 1]]; 
+            currentChunks[[currentChunkPosition.x, currentChunkPosition.y - 2]] = new Chunk(seed);       
+            currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y - 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y - 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y - 1]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y]] = new Chunk(seed); 
         } else if (DISPLACEMENT.x == 1 && DISPLACEMENT.y == 0) {
-            
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y + 1]];
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y - 1]] = new Chunk(seed);       
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y + 1]] = new Chunk(seed); 
         } else if (DISPLACEMENT.x == 1 && DISPLACEMENT.y == 1) {
-            
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y + 1]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 1]]; 
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y]] = new Chunk(seed);       
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y + 1]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x + 2, currentChunkPosition.y + 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y + 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x, currentChunkPosition.y + 2]] = new Chunk(seed); 
         } else if (DISPLACEMENT.x == 0 && DISPLACEMENT.y == 1) {
-            
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y - 1]];
+            currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y + 2]] = new Chunk(seed);       
+            currentChunks[[currentChunkPosition.x, currentChunkPosition.y + 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y + 2]] = new Chunk(seed); 
         } else if (DISPLACEMENT.x == -1 && DISPLACEMENT.y == 1) {
-            
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y + 1]]; 
+            currentChunks[[currentChunkPosition.x, currentChunkPosition.y + 2]] = new Chunk(seed);       
+            currentChunks[[currentChunkPosition.x - 1, currentChunkPosition.y + 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y + 2]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y + 1]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y]] = new Chunk(seed); 
         } else if (DISPLACEMENT.x == -1 && DISPLACEMENT.y == 0) {
-            
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y - 1]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y]];
+            delete currentChunks[[currentChunkPosition.x + 1, currentChunkPosition.y + 1]];
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y - 1]] = new Chunk(seed);       
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y]] = new Chunk(seed); 
+            currentChunks[[currentChunkPosition.x - 2, currentChunkPosition.y + 1]] = new Chunk(seed); 
         }
         currentChunkPosition = newChunkPosition;
-        if (DISPLACEMENT.x !== 0 || DISPLACEMENT.y !== 0) console.log(DISPLACEMENT);
+        if (DISPLACEMENT.x !== 0 || DISPLACEMENT.y !== 0) {
+            console.log(currentChunkPosition);
+            console.log(currentChunks);
+        } 
     }
 }
 
 var Chunk = function(seed) {
     var seed = seed;
 
-    console.log("NEW CHUNK SPAWNED");
 }
 
 var TreeGenerator = function(treeSprite) {
