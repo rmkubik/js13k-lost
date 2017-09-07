@@ -36,6 +36,7 @@ var init = function() {
 
     treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));    
     chunkMap = new ChunkMap(0);
+    console.log(chunkMap);
 }
 
 var update = function(delta, objects) {
@@ -43,111 +44,8 @@ var update = function(delta, objects) {
 
     //handle user inputs
     // process velocity & game logic changes on objects
-    objects.forEach(function(object) {
-        object.update(seconds);
-    }, this);
-
-    var collisions = [];
-    // are any objects colliding now?
-    objects.forEach(function(object) {
-        if (playerSprite.body.collide(object.body) && playerSprite.id !== object.id) {
-            collisions.push(object);
-        }
-    }, this);
-
-    // fix positions of colliding objects (and adjust velocities?)
-    collisions.forEach(function(other) {
-        const PLAYER_CENTER = {
-            x: playerSprite.body.position.x + Math.floor(playerSprite.body.size.width / 2),
-            y: playerSprite.body.position.y + Math.floor(playerSprite.body.size.height / 2)
-        }
-        const OTHER_CENTER = {
-            x: other.body.position.x + Math.floor(other.body.size.width / 2),
-            y: other.body.position.y + Math.floor(other.body.size.height / 2)
-        }
-        const DISPLACEMENT = {
-            x: PLAYER_CENTER.x - OTHER_CENTER.x,
-            y: PLAYER_CENTER.y - OTHER_CENTER.y
-        }
-        
-        // up diagonals
-        if (inputHandler.keys.left.isDown & inputHandler.keys.up.isDown) {
-            if (DISPLACEMENT.x < 0 && DISPLACEMENT.y > 0) {
-                // bottom left quadrant
-                collisionResolver.resolveUp(playerSprite, other);
-            } else if (DISPLACEMENT.x > 0 && DISPLACEMENT.y < 0) {
-                // top right quadrant
-                collisionResolver.resolveLeft(playerSprite, other);
-            } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
-                // these can't be combined above because quadrant checking needs to happen before absolute value checking
-                collisionResolver.resolveLeft(playerSprite, other);
-            } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
-                // these can't be combined above because quadrant checking needs to happen before absolute value checking
-                collisionResolver.resolveUp(playerSprite, other);
-            }
-        } else if (inputHandler.keys.right.isDown & inputHandler.keys.up.isDown) {
-            if (DISPLACEMENT.x < 0 && DISPLACEMENT.y < 0) {
-                // top left quadrant
-                collisionResolver.resolveRight(playerSprite, other);
-            } else if (DISPLACEMENT.x > 0 && DISPLACEMENT.y > 0) {
-                // bottom right quadrant
-                collisionResolver.resolveUp(playerSprite, other);
-            } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
-                // these can't be combined above because quadrant checking needs to happen before absolute value checking
-                collisionResolver.resolveRight(playerSprite, other);
-            } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
-                // these can't be combined above because quadrant checking needs to happen before absolute value checking
-                collisionResolver.resolveUp(playerSprite, other);
-            }
-        } else if (inputHandler.keys.left.isDown & inputHandler.keys.down.isDown) {
-            if (DISPLACEMENT.x < 0 && DISPLACEMENT.y < 0) {
-                // top left quadrant
-                collisionResolver.resolveDown(playerSprite, other);
-            } else if (DISPLACEMENT.x > 0 && DISPLACEMENT.y > 0) {
-                // bottom right quadrant
-                collisionResolver.resolveLeft(playerSprite, other);
-            } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
-                // these can't be combined above because quadrant checking needs to happen before absolute value checking
-                collisionResolver.resolveLeft(playerSprite, other);
-            } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
-                // these can't be combined above because quadrant checking needs to happen before absolute value checking
-                collisionResolver.resolveDown(playerSprite, other);
-            }
-        } else if (inputHandler.keys.right.isDown & inputHandler.keys.down.isDown) {
-            if (DISPLACEMENT.x > 0 && DISPLACEMENT.y < 0) {
-                // top left quadrant
-                collisionResolver.resolveDown(playerSprite, other);
-            } else if (DISPLACEMENT.x < 0 && DISPLACEMENT.y > 0) {
-                // bottom right quadrant
-                collisionResolver.resolveRight(playerSprite, other);
-            } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
-                // these can't be combined above because quadrant checking needs to happen before absolute value checking
-                collisionResolver.resolveRight(playerSprite, other);
-            } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
-                // these can't be combined above because quadrant checking needs to happen before absolute value checking
-                collisionResolver.resolveDown(playerSprite, other);
-            }
-        } else {
-            // left & right only
-            if (inputHandler.keys.left.isDown) {
-                collisionResolver.resolveLeft(playerSprite, other);
-            } else if (inputHandler.keys.right.isDown) {
-                collisionResolver.resolveRight(playerSprite, other);
-            }
-
-            // up & down only
-            if (inputHandler.keys.up.isDown) {
-                collisionResolver.resolveUp(playerSprite, other);
-            } else if (inputHandler.keys.down.isDown) {
-                collisionResolver.resolveDown(playerSprite, other);
-            } 
-        }
-    }, this);
-
-    // depth sort all objects in the game
-    objects.sort(function (a, b) {
-        return a.position.y - b.position.y;
-    });
+    chunkMap.update(seconds);
+    playerSprite.update(seconds);
 
     chunkMap.updateChunks(playerSprite.position);
 }
@@ -156,9 +54,8 @@ var render = function (objects) {
     context.fillStyle = '#83c168';
     context.fillRect(0, 0, 500, 500);
 
-    objects.forEach(function(object) {
-        object.render(context);
-    }, this);
+    chunkMap.render(context);
+    playerSprite.render(context);
 }
 
 var now = Date.now();
@@ -387,42 +284,177 @@ var ChunkMap = function(seed) {
     function addChunk(seed, chunkPosition) {
         currentChunks[[chunkPosition.x, chunkPosition.y]] = new Chunk(seed, chunkPosition);               
     }
+
+    this.update = function(delta) {
+        for (var chunkKey in currentChunks) {
+            if (currentChunks.hasOwnProperty(chunkKey)) {
+                currentChunks[chunkKey].update(delta);
+            }
+        }
+    }
+
+    this.render = function(context) {
+        for (var chunkKey in currentChunks) {
+            if (currentChunks.hasOwnProperty(chunkKey)) {
+                currentChunks[chunkKey].render(context);
+            }
+        }
+    }
 }
 
 var Chunk = function(seed, position) {
     var position = position;
     var seed = seed;
-    treeGenerator.plantTrees(
-        35, 
-        {
-            min: position.x * CANVAS_WIDTH, 
-            max: position.x * CANVAS_WIDTH + CANVAS_WIDTH
-        }, 
-        {
-            min: position.y * CANVAS_HEIGHT, 
-            max: position.y * CANVAS_HEIGHT + CANVAS_HEIGHT
-        }
+    var objects = [];
+    objects = objects.concat(
+        treeGenerator.plantTrees(
+            35, 
+            {
+                min: position.x * CANVAS_WIDTH, 
+                max: position.x * CANVAS_WIDTH + CANVAS_WIDTH
+            }, 
+            {
+                min: position.y * CANVAS_HEIGHT, 
+                max: position.y * CANVAS_HEIGHT + CANVAS_HEIGHT
+            }
+        )
     );
+    this.update = function(seconds) {
+        objects.forEach(function(object) {                
+            object.update(seconds);
+        }, this);
+
+        var collisions = [];
+        // are any objects colliding now?
+        objects.forEach(function(object) {
+            if (playerSprite.body.collide(object.body) && playerSprite.id !== object.id) {
+                collisions.push(object);
+            }
+        }, this);
+    
+        // fix positions of colliding objects (and adjust velocities?)
+        collisions.forEach(function(other) {
+            const PLAYER_CENTER = {
+                x: playerSprite.body.position.x + Math.floor(playerSprite.body.size.width / 2),
+                y: playerSprite.body.position.y + Math.floor(playerSprite.body.size.height / 2)
+            }
+            const OTHER_CENTER = {
+                x: other.body.position.x + Math.floor(other.body.size.width / 2),
+                y: other.body.position.y + Math.floor(other.body.size.height / 2)
+            }
+            const DISPLACEMENT = {
+                x: PLAYER_CENTER.x - OTHER_CENTER.x,
+                y: PLAYER_CENTER.y - OTHER_CENTER.y
+            }
+            
+            // up diagonals
+            if (inputHandler.keys.left.isDown & inputHandler.keys.up.isDown) {
+                if (DISPLACEMENT.x < 0 && DISPLACEMENT.y > 0) {
+                    // bottom left quadrant
+                    collisionResolver.resolveUp(playerSprite, other);
+                } else if (DISPLACEMENT.x > 0 && DISPLACEMENT.y < 0) {
+                    // top right quadrant
+                    collisionResolver.resolveLeft(playerSprite, other);
+                } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
+                    // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                    collisionResolver.resolveLeft(playerSprite, other);
+                } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
+                    // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                    collisionResolver.resolveUp(playerSprite, other);
+                }
+            } else if (inputHandler.keys.right.isDown & inputHandler.keys.up.isDown) {
+                if (DISPLACEMENT.x < 0 && DISPLACEMENT.y < 0) {
+                    // top left quadrant
+                    collisionResolver.resolveRight(playerSprite, other);
+                } else if (DISPLACEMENT.x > 0 && DISPLACEMENT.y > 0) {
+                    // bottom right quadrant
+                    collisionResolver.resolveUp(playerSprite, other);
+                } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
+                    // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                    collisionResolver.resolveRight(playerSprite, other);
+                } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
+                    // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                    collisionResolver.resolveUp(playerSprite, other);
+                }
+            } else if (inputHandler.keys.left.isDown & inputHandler.keys.down.isDown) {
+                if (DISPLACEMENT.x < 0 && DISPLACEMENT.y < 0) {
+                    // top left quadrant
+                    collisionResolver.resolveDown(playerSprite, other);
+                } else if (DISPLACEMENT.x > 0 && DISPLACEMENT.y > 0) {
+                    // bottom right quadrant
+                    collisionResolver.resolveLeft(playerSprite, other);
+                } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
+                    // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                    collisionResolver.resolveLeft(playerSprite, other);
+                } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
+                    // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                    collisionResolver.resolveDown(playerSprite, other);
+                }
+            } else if (inputHandler.keys.right.isDown & inputHandler.keys.down.isDown) {
+                if (DISPLACEMENT.x > 0 && DISPLACEMENT.y < 0) {
+                    // top left quadrant
+                    collisionResolver.resolveDown(playerSprite, other);
+                } else if (DISPLACEMENT.x < 0 && DISPLACEMENT.y > 0) {
+                    // bottom right quadrant
+                    collisionResolver.resolveRight(playerSprite, other);
+                } else if (Math.abs(DISPLACEMENT.y) < Math.abs(DISPLACEMENT.x)) {
+                    // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                    collisionResolver.resolveRight(playerSprite, other);
+                } else if (Math.abs(DISPLACEMENT.y) > Math.abs(DISPLACEMENT.x)) {
+                    // these can't be combined above because quadrant checking needs to happen before absolute value checking
+                    collisionResolver.resolveDown(playerSprite, other);
+                }
+            } else {
+                // left & right only
+                if (inputHandler.keys.left.isDown) {
+                    collisionResolver.resolveLeft(playerSprite, other);
+                } else if (inputHandler.keys.right.isDown) {
+                    collisionResolver.resolveRight(playerSprite, other);
+                }
+    
+                // up & down only
+                if (inputHandler.keys.up.isDown) {
+                    collisionResolver.resolveUp(playerSprite, other);
+                } else if (inputHandler.keys.down.isDown) {
+                    collisionResolver.resolveDown(playerSprite, other);
+                } 
+            }
+        }, this);
+    
+        // depth sort all objects in the game
+        objects.sort(function (a, b) {
+            return a.position.y - b.position.y;
+        });
+    }
+    this.render = function(context) {
+        objects.forEach(function(object) {
+            object.render(context);
+        }, this);
+    }
 }
 
 var TreeGenerator = function(treeSprite) {
     var treeSprite = treeSprite;
 
     this.plantTrees = function(treeCount, xRange, yRange) {
+        var trees = [];
         for (var i = 0; i < treeCount; i++) {
-            plantTree(
-                treeSprite, 
-                Math.floor(Math.random() * (xRange.max - xRange.min) + xRange.min), 
-                Math.floor(Math.random() * (yRange.max - yRange.min) + yRange.min)
+            trees.push(
+                plantTree(
+                    treeSprite, 
+                    Math.floor(Math.random() * (xRange.max - xRange.min) + xRange.min), 
+                    Math.floor(Math.random() * (yRange.max - yRange.min) + yRange.min)
+                )
             );
         }
+        return trees;
     }
 
     function plantTree(treeSprite, x, y) {
         var treeSprite = new Sprite(spriteSheet, 1, false);
         treeSprite.position.x = x;
         treeSprite.position.y = y;
-        objects.push(treeSprite);
+        return treeSprite;
     }
 }
 
