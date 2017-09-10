@@ -28,21 +28,20 @@ var init = function() {
     spriteSheet = new SpriteSheet(testImage, SPRITESHEET_DIMENSIONS, SPRITESHEET_FRAME_DIMENSIONS);
     playerSprite = new Sprite(spriteSheet, 2, true);
 
-    objects = [];
-    objects.push(playerSprite);
+    // objects = [];
+    // objects.push(playerSprite);
 
     inputHandler = new InputHandler()
     collisionResolver = new CollisionResolver();
 
     treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));    
     chunkMap = new ChunkMap(0);
-    console.log(chunkMap);
 }
 
 var update = function(delta, objects) {
     var seconds = delta / 1000;
 
-    //handle user inputs
+    // handle user inputs
     // process velocity & game logic changes on objects
     chunkMap.update(seconds);
     playerSprite.update(seconds);
@@ -55,7 +54,7 @@ var render = function (objects) {
     context.fillRect(0, 0, 500, 500);
 
     chunkMap.render(context);
-    playerSprite.render(context);
+    // playerSprite.render(context);
 }
 
 var now = Date.now();
@@ -85,7 +84,7 @@ var Sprite = function(spriteSheet, frame, movable) {
         x: 0,
         y: 0
     };
-    this.speed = 300;
+    this.speed = 150;
     this.body = new Body(this.position, SPRITESHEET_FRAME_DIMENSIONS, movable);  
     this.id = GetGUID();      
 
@@ -185,6 +184,7 @@ var ChunkMap = function(seed) {
     addChunk(seed, {x: currentChunkPosition.x - 1, y: currentChunkPosition.y + 1});
     addChunk(seed, {x: currentChunkPosition.x - 1, y: currentChunkPosition.y});
     addChunk(seed, {x: currentChunkPosition.x, y: currentChunkPosition.y});
+    addObjectToChunk(currentChunkPosition, playerSprite);
 
     this.updateChunks = function(playerPosition) {
         // find which chunk the player has moved into
@@ -196,7 +196,27 @@ var ChunkMap = function(seed) {
             x: newChunkPosition.x - currentChunkPosition.x,
             y: newChunkPosition.y - currentChunkPosition.y
         }
-        loadChunks(DISPLACEMENT, newChunkPosition);
+
+        if (newChunkPosition.x !== currentChunkPosition.x || newChunkPosition.y !== currentChunkPosition.y) {
+            // remove player from chunk (0,0)
+            var player = removeObjectFromChunk(currentChunkPosition, playerSprite.id);
+        
+            loadChunks(DISPLACEMENT, newChunkPosition);
+    
+            if (player !== null) {
+                // add player to new chunk
+                addObjectToChunk(newChunkPosition, player);
+            }
+        }
+    }
+
+    function removeObjectFromChunk(chunkPosition, id) {
+        var removedObject = currentChunks[[chunkPosition.x, chunkPosition.y]].removeObject(id);
+        return removedObject;
+    }
+
+    function addObjectToChunk(chunkPosition, object) {
+        currentChunks[[chunkPosition.x, chunkPosition.y]].addObject(object);
     }
 
     function loadChunks(DISPLACEMENT, newChunkPosition) {
@@ -275,10 +295,10 @@ var ChunkMap = function(seed) {
             addChunk(seed, {x: currentChunkPosition.x - 2, y: currentChunkPosition.y + 1});
         }
         currentChunkPosition = newChunkPosition;
-        if (DISPLACEMENT.x !== 0 || DISPLACEMENT.y !== 0) {
-            console.log(currentChunkPosition);
-            console.log(currentChunks);
-        } 
+        // if (DISPLACEMENT.x !== 0 || DISPLACEMENT.y !== 0) {
+        //     console.log(currentChunkPosition);
+        //     console.log(currentChunks);
+        // } 
     }
 
     function addChunk(seed, chunkPosition) {
@@ -306,6 +326,7 @@ var Chunk = function(seed, position) {
     var position = position;
     var seed = seed;
     var objects = [];
+    var playerIndex = -1;
     objects = objects.concat(
         treeGenerator.plantTrees(
             35, 
@@ -319,6 +340,19 @@ var Chunk = function(seed, position) {
             }
         )
     );
+    this.removeObject = function(id) {
+        var removedObject = null;
+        for (var i = 0; i < objects.length; i++) {
+            if (objects[i].id === id) {
+                removedObject = objects.splice(i, 1);
+                break;
+            }
+        }
+        return removedObject[0];
+    }
+    this.addObject = function(object) {
+        objects.push(object);
+    }
     this.update = function(seconds) {
         objects.forEach(function(object) {                
             object.update(seconds);
