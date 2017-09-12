@@ -16,6 +16,8 @@ const SPRITESHEET_DIMENSIONS = { width: 128, height: 128 };
 const SPRITESHEET_FRAME_DIMENSIONS = { width: 16, height: 16 };
 const CANVAS_WIDTH = 500;
 const CANVAS_HEIGHT = 500;
+const GOAL_DIST_WIDTH_RANGE = { max: 1, min: 1 }
+const GOAL_DIST_HEIGHT_RANGE = { max: 1, min: 1 }
 
 var init = function() {
     canvas = document.getElementById('canvas');
@@ -28,14 +30,11 @@ var init = function() {
     spriteSheet = new SpriteSheet(testImage, SPRITESHEET_DIMENSIONS, SPRITESHEET_FRAME_DIMENSIONS);
     playerSprite = new Sprite(spriteSheet, 2, true);
 
-    // objects = [];
-    // objects.push(playerSprite);
-
     inputHandler = new InputHandler()
     collisionResolver = new CollisionResolver();
 
     treeGenerator = new TreeGenerator(new Sprite(spriteSheet, 1));    
-    chunkMap = new ChunkMap(0);
+    chunkMap = new ChunkMap();
 }
 
 var update = function(delta, objects) {
@@ -169,11 +168,16 @@ var SpriteSheet = function(image, imageSize, frameSize) {
     }
 }
 
-var ChunkMap = function(seed) {
-    var seed = seed;
+var ChunkMap = function() {
     var currentChunks = {};
     var chunkSize = {height: CANVAS_HEIGHT, width: CANVAS_WIDTH}
     var currentChunkPosition = {x: 0, y: 0};
+    var seed = {}; //don't want to use space to implement seeded rng, so passing info through seed instead
+    seed.goalChunkPosition = {
+        x: Math.floor(Math.random() * (GOAL_DIST_WIDTH_RANGE.max - GOAL_DIST_WIDTH_RANGE.min) + GOAL_DIST_WIDTH_RANGE.min), 
+        y: Math.floor(Math.random() * (GOAL_DIST_HEIGHT_RANGE.max - GOAL_DIST_HEIGHT_RANGE.min) + GOAL_DIST_HEIGHT_RANGE.min)
+    }
+    console.log(seed);
 
     addChunk(seed, {x: currentChunkPosition.x - 1, y: currentChunkPosition.y - 1});
     addChunk(seed, {x: currentChunkPosition.x, y: currentChunkPosition.y - 1});
@@ -327,19 +331,29 @@ var Chunk = function(seed, position) {
     var seed = seed;
     var objects = [];
     var playerIndex = -1;
-    objects = objects.concat(
-        treeGenerator.plantTrees(
-            35, 
-            {
-                min: position.x * CANVAS_WIDTH, 
-                max: position.x * CANVAS_WIDTH + CANVAS_WIDTH
-            }, 
-            {
-                min: position.y * CANVAS_HEIGHT, 
-                max: position.y * CANVAS_HEIGHT + CANVAS_HEIGHT
-            }
-        )
-    );
+    generate(seed);
+    function generate(seed) {
+        objects = objects.concat(
+            treeGenerator.plantTrees(
+                35, 
+                {
+                    min: position.x * CANVAS_WIDTH, 
+                    max: position.x * CANVAS_WIDTH + CANVAS_WIDTH
+                }, 
+                {
+                    min: position.y * CANVAS_HEIGHT, 
+                    max: position.y * CANVAS_HEIGHT + CANVAS_HEIGHT
+                }
+            )
+        );
+        console.log("generating chunk " + position.x + " : " + position.y);
+        if (position.x === seed.goalChunkPosition.x && position.y === seed.goalChunkPosition.y) {
+            var goalSprite = new Sprite(spriteSheet, 4, false);
+            goalSprite.position.x = position.x * CANVAS_WIDTH;
+            goalSprite.position.y = position.y * CANVAS_HEIGHT;
+            objects = objects.concat(goalSprite); 
+        }
+    }
     this.removeObject = function(id) {
         var removedObject = null;
         for (var i = 0; i < objects.length; i++) {
