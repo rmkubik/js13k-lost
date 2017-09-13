@@ -12,18 +12,24 @@ var chunkMap;
 var objects;
 var inputHandler;
 var colisionResolver;
+var stepCount;
+var goalReached;
 const SPRITESHEET_DIMENSIONS = { width: 128, height: 128 };
 const SPRITESHEET_FRAME_DIMENSIONS = { width: 16, height: 16 };
 const CANVAS_WIDTH = 500;
 const CANVAS_HEIGHT = 500;
 const GOAL_DIST_WIDTH_RANGE = { max: 1, min: 1 }
 const GOAL_DIST_HEIGHT_RANGE = { max: 1, min: 1 }
+const STEP_COUNT_FACTOR = .1;
 
 var init = function() {
     canvas = document.getElementById('canvas');
     context = canvas.getContext('2d');
     canvas.height = CANVAS_HEIGHT;
     canvas.width = CANVAS_WIDTH;
+
+    stepCount = 0;
+    goalReached = false;
 
     testImage = new Image();
     testImage.src = 'testasset.png';
@@ -53,7 +59,12 @@ var render = function (objects) {
     context.fillRect(0, 0, 500, 500);
 
     chunkMap.render(context);
-    // playerSprite.render(context);
+
+    if (goalReached) {
+        context.fillStyle = 'white';
+        context.font = "22px Arial";
+        context.fillText("It took you " + Math.floor(stepCount) + " steps to find your tent.", 20, 50);
+    }
 }
 
 var now = Date.now();
@@ -93,6 +104,9 @@ var Sprite = function(spriteSheet, frame, movable) {
             
             this.position.x += this.velocity.x * delta;
             this.position.y += this.velocity.y * delta;
+            if (!goalReached) {
+                stepCount += STEP_COUNT_FACTOR;
+            }
         }
     }
 
@@ -177,7 +191,6 @@ var ChunkMap = function() {
         x: Math.floor(Math.random() * (GOAL_DIST_WIDTH_RANGE.max - GOAL_DIST_WIDTH_RANGE.min) + GOAL_DIST_WIDTH_RANGE.min), 
         y: Math.floor(Math.random() * (GOAL_DIST_HEIGHT_RANGE.max - GOAL_DIST_HEIGHT_RANGE.min) + GOAL_DIST_HEIGHT_RANGE.min)
     }
-    console.log(seed);
 
     addChunk(seed, {x: currentChunkPosition.x - 1, y: currentChunkPosition.y - 1});
     addChunk(seed, {x: currentChunkPosition.x, y: currentChunkPosition.y - 1});
@@ -346,7 +359,6 @@ var Chunk = function(seed, position) {
                 }
             )
         );
-        console.log("generating chunk " + position.x + " : " + position.y);
         if (position.x === seed.goalChunkPosition.x && position.y === seed.goalChunkPosition.y) {
             var goalSprite = new Sprite(spriteSheet, 4, false);
             goalSprite.position.x = position.x * CANVAS_WIDTH;
@@ -382,6 +394,10 @@ var Chunk = function(seed, position) {
     
         // fix positions of colliding objects (and adjust velocities?)
         collisions.forEach(function(other) {
+            // is the player colliding with the goal?
+            if (other.frame === 4) {
+                goalReached = true;
+            }
             const PLAYER_CENTER = {
                 x: playerSprite.body.position.x + Math.floor(playerSprite.body.size.width / 2),
                 y: playerSprite.body.position.y + Math.floor(playerSprite.body.size.height / 2)
