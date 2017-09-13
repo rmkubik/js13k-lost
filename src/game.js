@@ -14,13 +14,15 @@ var inputHandler;
 var colisionResolver;
 var stepCount;
 var goalReached;
+var signPostSpawnChance;
 const SPRITESHEET_DIMENSIONS = { width: 128, height: 128 };
 const SPRITESHEET_FRAME_DIMENSIONS = { width: 16, height: 16 };
 const CANVAS_WIDTH = 500;
 const CANVAS_HEIGHT = 500;
-const GOAL_DIST_WIDTH_RANGE = { max: 1, min: 1 }
-const GOAL_DIST_HEIGHT_RANGE = { max: 1, min: 1 }
+const GOAL_DIST_WIDTH_RANGE = { max: 3, min: 2 }
+const GOAL_DIST_HEIGHT_RANGE = { max: 3, min: 2 }
 const STEP_COUNT_FACTOR = .1;
+const SIGNPOST_RATE = .4;
 
 var init = function() {
     canvas = document.getElementById('canvas');
@@ -30,6 +32,7 @@ var init = function() {
 
     stepCount = 0;
     goalReached = false;
+    signPostSpawnChance = 0;
 
     testImage = new Image();
     testImage.src = 'testasset.png';
@@ -219,7 +222,35 @@ var ChunkMap = function() {
             var player = removeObjectFromChunk(currentChunkPosition, playerSprite.id);
         
             loadChunks(DISPLACEMENT, newChunkPosition);
-    
+
+            // out of time to fix! :-(
+            // if (player !== null && Math.random() < signPostSpawnChance) {
+            //     var signPost;
+            //     // spawn sign post
+            //     if (seed.goalChunkPosition.y > newChunkPosition.y) {
+            //         // down
+            //         signPost = new Sprite(spriteSheet, 7, false);
+            //     } else if (seed.goalChunkPosition.y < newChunkPosition.y) {
+            //         // up
+            //         signPost = new Sprite(spriteSheet, 6, false);
+            //     } else {
+            //         // lateral
+            //         signPost = new Sprite(spriteSheet, 5, false);
+            //     }
+            //     if (seed.goalChunkPosition.x > newChunkPosition.x) {
+            //         // flip sprite direction, goal is to the left
+            //     }
+            //     signPost.position.x = player.position.x + 25;
+            //     signPost.position.y = player.position.y + 25;
+            //     addObjectToChunk(newChunkPosition, signPost);
+            //     // reset chance to zero
+            //     signPostSpawnChance = 0;
+            //     console.log('spawned a post');
+            // } else {
+            //     //increase spawn chance
+            //     signPostSpawnChance += SIGNPOST_RATE;
+            // }
+
             if (player !== null) {
                 // add player to new chunk
                 addObjectToChunk(newChunkPosition, player);
